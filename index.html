@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envia - E-mail Cliente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ========================================
+           VARIÁVEIS CSS E CONFIGURAÇÕES GLOBAIS
+           ======================================== */
+        :root {
+            --skin-gradient: linear-gradient(to right, #3d72b4, #525252);
+            --primary-color: rgba(255, 255, 255, 0.15);
+            --border-color: rgba(255, 255, 255, 0.2);
+            --text-color: #fff;
+            --glow-border: 0 0 10px rgba(255, 255, 255, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.12);
+            --glass-blur: blur(10px);
+        }
+
+        /* Reset e estilos base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Ubuntu', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--skin-gradient);
+            transition: background 0.5s ease-in-out;
+            overflow: hidden;
+        }
+
+        /* ========================================
+           CONTAINER PRINCIPAL
+           ======================================== */
+        .container {
+            background: var(--glass-bg);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37), var(--glow-border);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            padding: 20px;
+            text-align: center;
+            color: var(--text-color);
+            max-width: 420px;
+            width: 90%;
+            position: relative;
+            display: none;
+        }
+
+        .container.visible {
+            display: block;
+        }
+
+        h1 {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 0.85em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+            font-weight: 300;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 20px;
+            border-radius: 6px;
+            color: var(--text-color);
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            font-weight: 500;
+            box-shadow: var(--glow-border);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        /* ========================================
+           POPUPS
+           ======================================== */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            overflow-y: auto;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-content {
+            background: var(--glass-bg);
+            border-radius: 10px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            padding: 18px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37), var(--glow-border);
+            text-align: left;
+            color: var(--text-color);
+            max-width: 360px;
+            width: 90%;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            margin: auto;
+        }
+
+        .popup-overlay.active .popup-content {
+            transform: translateY(0);
+        }
+
+        .popup-content h2 {
+            margin-top: 0;
+            margin-bottom: 14px;
+            font-size: 1.2em;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+        }
+
+        .popup-content label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+
+        .popup-content input,
+        .popup-content select,
+        .popup-content textarea {
+            width: calc(100% - 14px);
+            padding: 6px 7px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            background: rgba(100, 120, 140, 0.4);
+            color: var(--text-color);
+            font-family: 'Ubuntu', sans-serif;
+            font-size: 0.85em;
+            outline: none;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .popup-content input:focus,
+        .popup-content select:focus,
+        .popup-content textarea:focus {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(100, 120, 140, 0.6);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        /* ========================================
+           SPINNER COM EFEITO GLASS
+           ======================================== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 30px;
+            text-align: center;
+            color: var(--text-color);
+            max-width: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 20px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 0.8s ease-in-out;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        .loading-text {
+            font-size: 0.9em;
+            margin-top: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <h1>Envia - E-mail Cliente</h1>
+        <p>Bem-vindo ao seu cliente de e-mail automatizado.</p>
+    </div>
+
+    <!-- Popup para Data, Módulo e Horário -->
+    <div class="popup-overlay active" id="initialPopup">
+        <div class="popup-content">
+            <h2>Informações do Treinamento</h2>
+            <label for="trainingDate">Data do Treinamento:</label>
+            <input type="date" id="trainingDate" required>
+
+            <label for="trainingModule">Módulo do Treinamento:</label>
+            <select id="trainingModule" required>
+                <option value="">Selecione um módulo</option>
+                <option value="ESCRITA FISCAL">ESCRITA FISCAL</option>
+                <option value="FOLHA">FOLHA</option>
+                <option value="CONTABILIDADE">CONTABILIDADE</option>
+                <option value="PATRIMONIO">PATRIMONIO</option>
+                <option value="LALUR">LALUR</option>
+                <option value="PORTAL DO CLIENTE">PORTAL DO CLIENTE</option>
+                <option value="BUSCA NF-E">BUSCA NF-E</option>
+                <option value="CUSTOS">CUSTOS</option>
+                <option value="REGISTRO">REGISTRO</option>
+                <option value="PROTOCOLO">PROTOCOLO</option>
+                <option value="ADMINISTRAR">ADMINISTRAR</option>
+                <option value="ATUALIZAR">ATUALIZAR</option>
+                <option value="ACOMPANHAMENTO FISCAL">ACOMPANHAMENTO FISCAL</option>
+                <option value="ACOMPANHAMENTO CONTÁBIL">ACOMPANHAMENTO CONTÁBIL</option>
+                <option value="ACOMPANHAMENTO GERAL">ACOMPANHAMENTO GERAL</option>
+                <option value="PREPARO DE BANCO">PREPARO DE BANCO</option>
+                <option value="IMPORTAÇÕES">IMPORTAÇÕES</option>
+                <option value="OUTROS FISCAL">OUTROS FISCAL</option>
+                <option value="OUTROS CONTÁBIL">OUTROS CONTÁBIL</option>
+            </select>
+
+            <label for="trainingTimeStart">Horário de Início:</label>
+            <input type="time" id="trainingTimeStart" required>
+
+            <label for="trainingTimeEnd">Horário de Término:</label>
+            <input type="time" id="trainingTimeEnd" required>
+
+            <button id="submitInitialPopup">Continuar</button>
+        </div>
+    </div>
+
+    <!-- Popup Oculto para Colagem Automática (Processado via Script) -->
+    <textarea id="manualContent" style="display:none;"></textarea>
+
+    <!-- Popup para Confirmação de E-mail -->
+    <div class="popup-overlay" id="emailConfirmPopup">
+        <div class="popup-content">
+            <h2>Confirmar E-mails</h2>
+            <p style="font-size: 0.85em; margin-bottom: 10px;">E-mails encontrados. Por favor, confirme:</p>
+            
+            <label for="confirmPrimaryEmail">E-mail Principal (Para):</label>
+            <input type="email" id="confirmPrimaryEmail" placeholder="E-mail principal" required>
+
+            <label for="confirmCCEmails">E-mails Adicionais (CC) - use ";" como separador:</label>
+            <textarea id="confirmCCEmails" placeholder="E-mail 1; E-mail 2; ..."></textarea>
+
+            <div class="button-group">
+                <button id="confirmEmailButton">Confirmar</button>
+                <button id="cancelEmailButton">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Carregamento Glass -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <div class="loading-text" id="loadingText">Capturando dados...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // CONFIGURAÇÃO INICIAL (DATA DO DIA)
+        // ========================================
+        window.onload = () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('trainingDate').value = today;
+        };
+
+        const initialPopup = document.getElementById('initialPopup');
+        const submitInitialPopup = document.getElementById('submitInitialPopup');
+        const trainingDateInput = document.getElementById('trainingDate');
+        const trainingModuleSelect = document.getElementById('trainingModule');
+        const trainingTimeStartInput = document.getElementById('trainingTimeStart');
+        const trainingTimeEndInput = document.getElementById('trainingTimeEnd');
+        const manualContentInput = document.getElementById('manualContent');
+        const emailConfirmPopup = document.getElementById('emailConfirmPopup');
+        const confirmPrimaryEmailInput = document.getElementById('confirmPrimaryEmail');
+        const confirmCCEmailsTextarea = document.getElementById('confirmCCEmails');
+        const confirmEmailButton = document.getElementById('confirmEmailButton');
+        const cancelEmailButton = document.getElementById('cancelEmailButton');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const progressFill = document.getElementById('progressFill');
+        const loadingText = document.getElementById('loadingText');
+
+        let trainingData = {};
+
+        // ========================================
+        // FLUXO AUTOMATIZADO APÓS POPUP INICIAL
+        // ========================================
+        submitInitialPopup.addEventListener('click', async () => {
+            const date = trainingDateInput.value;
+            const module = trainingModuleSelect.value;
+            const timeStart = trainingTimeStartInput.value;
+            const timeEnd = trainingTimeEndInput.value;
+
+            if (date && module && timeStart && timeEnd) {
+                // Formatar data para DD/MM/YYYY
+                const [y, m, d] = date.split('-');
+                const formattedDate = `${d}/${m}/${y}`;
+
+                trainingData = {
+                    date: formattedDate,
+                    module: module,
+                    timeStart: timeStart,
+                    timeEnd: timeEnd,
+                    time: `${timeStart} a ${timeEnd}`
+                };
+
+                initialPopup.classList.remove('active');
+                await processAutomation();
+            } else {
+                alert('Por favor, preencha todas as informações.');
+            }
+        });
+
+        async function processAutomation() {
+            loadingOverlay.classList.add('active');
+            
+            // Passo 1: Captura (Pausado)
+            loadingText.textContent = "Acessando área de transferência...";
+            await updateProgress(30, 1000);
+            
+            try {
+                const text = await navigator.clipboard.readText();
+                manualContentInput.value = text || "";
+            } catch (err) {
+                console.log('Clipboard access denied.');
+            }
+
+            // Passo 2: Processamento (Pausado)
+            loadingText.textContent = "Extraindo e-mails...";
+            await updateProgress(70, 1200);
+            
+            const content = manualContentInput.value.trim();
+            
+            // Passo 3: Finalização
+            loadingText.textContent = "Finalizando...";
+            await updateProgress(100, 800);
+
+            setTimeout(() => {
+                loadingOverlay.classList.remove('active');
+                extractEmails(content);
+            }, 500);
+        }
+
+        function updateProgress(target, duration) {
+            return new Promise(resolve => {
+                progressFill.style.width = target + '%';
+                setTimeout(resolve, duration);
+            });
+        }
+
+        // ========================================
+        // EXTRAÇÃO E CONFIRMAÇÃO
+        // ========================================
+        function extractEmails(content) {
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+            let emailsFound = new Set();
+            const matches = content.match(emailRegex);
+            if (matches) matches.forEach(e => emailsFound.add(e));
+
+            if (emailsFound.size > 0) {
+                const arr = Array.from(emailsFound);
+                confirmPrimaryEmailInput.value = arr[0];
+                confirmCCEmailsTextarea.value = arr.slice(1).join('; ');
+            } else {
+                confirmPrimaryEmailInput.value = '';
+                confirmCCEmailsTextarea.value = '';
+                alert('Nenhum e-mail encontrado na área de transferência.');
+            }
+            emailConfirmPopup.classList.add('active');
+        }
+
+        confirmEmailButton.addEventListener('click', () => {
+            const primary = confirmPrimaryEmailInput.value.trim();
+            const ccText = confirmCCEmailsTextarea.value.trim();
+            if (!primary) return alert('E-mail principal obrigatório.');
+
+            const cc = ccText.split(/[;\n]/).map(e => e.trim()).filter(e => e.length > 0);
+            emailConfirmPopup.classList.remove('active');
+            openOutlook(primary, cc);
+        });
+
+        cancelEmailButton.addEventListener('click', () => {
+            emailConfirmPopup.classList.remove('active');
+            initialPopup.classList.add('active');
+        });
+
+        // ========================================
+        // ABERTURA DO OUTLOOK COM DATA NO CORPO
+        // ========================================
+        function openOutlook(toEmail, ccEmails = []) {
+            const subject = `Confirmação | Treinamento - ${trainingData.module} - ${trainingData.time} | Thomson Reuters - Domínio Sistemas`;
+            
+            // Corpo do e-mail com a DATA antes do horário
+            const body = `Olá, tudo bem?\n\nMeu nome é Ivan e sou Especialista em implantação e treinamento - Domínio Sistemas.\n\nGostaria de confirmar nosso treinamento do ${trainingData.module} agendado para o dia ${trainingData.date} das ${trainingData.time}.\n\nA Thomson Reuters tem a política de cancelamento que deve ser avisado com 48h úteis de antecedência.\nCaso não puder realizar, encaminhe mensagem para: 📱 WhatsApp: (11) 91576‑8587 📧 E-mail: implantacao.dominio@thomsonreuters.com avisando motivo da não realização.\n\nAt.te\n\nIvan Alves Ramalho \nEspecialista I&T\n(11) 99664-9967\nivan.ramalho@thomsonreuters.com`;
+
+            let mailtoLink = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            if (ccEmails.length > 0) mailtoLink += `&cc=${encodeURIComponent(ccEmails.join(';'))}`;
+            window.location.href = mailtoLink;
+        }
+    </script>
+</body>
+</html>
