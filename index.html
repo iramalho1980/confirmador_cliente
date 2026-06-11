@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envia - E-mail Cliente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Importando a fonte Ubuntu -->
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ========================================
+           VARIÁVEIS CSS E CONFIGURAÇÕES GLOBAIS
+           ======================================== */
+        :root {
+            --skin-gradient: linear-gradient(to right, #3d72b4, #525252);
+            --primary-color: rgba(255, 255, 255, 0.15);
+            --border-color: rgba(255, 255, 255, 0.2);
+            --text-color: #fff;
+            /* Estilo de borda esfumaçada (glow) */
+            --glow-border: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Reset e estilos base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Ubuntu', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--skin-gradient);
+            transition: background 0.5s ease-in-out;
+            overflow: hidden;
+        }
+
+        /* ========================================
+           CONTAINER PRINCIPAL
+           ======================================== */
+        .container {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37), var(--glow-border);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            color: var(--text-color);
+            max-width: 420px;
+            width: 90%;
+            position: relative;
+            display: none;
+        }
+
+        .container.visible {
+            display: block;
+        }
+
+        h1 {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 0.85em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+            font-weight: 300;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 20px;
+            border-radius: 6px;
+            color: var(--text-color);
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            font-weight: 500;
+            box-shadow: var(--glow-border);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        /* ========================================
+           ÍCONE DE CONFIGURAÇÕES
+           ======================================== */
+        .settings-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+            color: var(--text-color);
+            display: none;
+        }
+
+        .settings-icon.visible {
+            display: block;
+        }
+
+        .settings-icon:hover {
+            transform: rotate(90deg);
+        }
+
+        /* ========================================
+           SELETOR DE SKINS
+           ======================================== */
+        .skin-selector {
+            position: absolute;
+            top: 45px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), var(--glow-border);
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 1001;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .skin-selector.active {
+            display: flex;
+        }
+
+        .skin-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s ease-in-out;
+        }
+
+        .skin-preview:hover {
+            border-color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Skins */
+        .skin-1 { background: linear-gradient(to right, #19547b, #ffd89b); }
+        .skin-2 { background: linear-gradient(to right, #3d72b4, #525252); }
+        .skin-3 { background: linear-gradient(to right, #191654, #43C6AC); }
+        .skin-4 { background: linear-gradient(to right, #4ca2cd, #67B26F); }
+        .skin-5 { background: linear-gradient(to right, #3f4c6b, #606c88); }
+
+        /* ========================================
+           POPUPS
+           ======================================== */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            overflow-y: auto;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-content {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 18px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37), var(--glow-border);
+            text-align: left;
+            color: var(--text-color);
+            max-width: 360px;
+            width: 90%;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            margin: auto;
+        }
+
+        .popup-overlay.active .popup-content {
+            transform: translateY(0);
+        }
+
+        .popup-content h2 {
+            margin-top: 0;
+            margin-bottom: 14px;
+            font-size: 1.2em;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+        }
+
+        .popup-content label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+
+        .popup-content input,
+        .popup-content select,
+        .popup-content textarea {
+            width: calc(100% - 14px);
+            padding: 6px 7px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            background: rgba(100, 120, 140, 0.4);
+            color: var(--text-color);
+            font-family: 'Ubuntu', sans-serif;
+            font-size: 0.85em;
+            outline: none;
+            transition: all 0.3s ease-in-out;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        .popup-content input:focus,
+        .popup-content select:focus,
+        .popup-content textarea:focus {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(100, 120, 140, 0.6);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        .popup-content select option {
+            background: #2c3e50;
+            color: #fff;
+        }
+
+        .popup-content textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .popup-content button {
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-group button {
+            flex: 1;
+        }
+
+        /* ========================================
+           SPINNER DE CARREGAMENTO
+           ======================================== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-container {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 25px;
+            text-align: center;
+            color: var(--text-color);
+            max-width: 320px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: var(--glow-border);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 15px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.9));
+            width: 0%;
+            transition: width 0.3s ease-out;
+            border-radius: 3px;
+        }
+
+        .loading-text {
+            font-size: 0.9em;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .progress-percentage {
+            font-size: 0.8em;
+            margin-top: 6px;
+            opacity: 0.8;
+        }
+
+        /* ========================================
+           RESPONSIVIDADE
+           ======================================== */
+        @media (max-width: 600px) {
+            .container {
+                max-width: 90%;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.2em;
+            }
+
+            .popup-content {
+                max-width: 90%;
+                padding: 15px;
+            }
+
+            .loading-container {
+                max-width: 90%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Container Principal - Inicialmente oculto -->
+    <div class="container" id="mainContainer">
+        <i class="fas fa-cog settings-icon" id="settingsIcon"></i>
+        <h1>Envia - E-mail Cliente</h1>
+        <p>Bem-vindo ao seu cliente de e-mail automatizado.</p>
+
+        <!-- Seletor de Skins -->
+        <div class="skin-selector" id="skinSelector">
+            <div class="skin-preview skin-1" data-skin="1"></div>
+            <div class="skin-preview skin-2" data-skin="2"></div>
+            <div class="skin-preview skin-3" data-skin="3"></div>
+            <div class="skin-preview skin-4" data-skin="4"></div>
+            <div class="skin-preview skin-5" data-skin="5"></div>
+        </div>
+    </div>
+
+    <!-- Popup para Data, Módulo e Horário -->
+    <div class="popup-overlay active" id="initialPopup">
+        <div class="popup-content">
+            <h2>Informações do Treinamento</h2>
+            <label for="trainingDate">Data do Treinamento:</label>
+            <input type="date" id="trainingDate" required>
+
+            <label for="trainingModule">Módulo do Treinamento:</label>
+            <select id="trainingModule" required>
+                <option value="">Selecione um módulo</option>
+                <option value="ESCRITA FISCAL">ESCRITA FISCAL</option>
+                <option value="FOLHA">FOLHA</option>
+                <option value="CONTABILIDADE">CONTABILIDADE</option>
+                <option value="PATRIMONIO">PATRIMONIO</option>
+                <option value="LALUR">LALUR</option>
+                <option value="PORTAL DO CLIENTE">PORTAL DO CLIENTE</option>
+                <option value="BUSCA NF-E">BUSCA NF-E</option>
+                <option value="CUSTOS">CUSTOS</option>
+                <option value="REGISTRO">REGISTRO</option>
+                <option value="PROTOCOLO">PROTOCOLO</option>
+                <option value="ADMINISTRAR">ADMINISTRAR</option>
+                <option value="ATUALIZAR">ATUALIZAR</option>
+                <option value="ACOMPANHAMENTO FISCAL">ACOMPANHAMENTO FISCAL</option>
+                <option value="ACOMPANHAMENTO CONTÁBIL">ACOMPANHAMENTO CONTÁBIL</option>
+                <option value="ACOMPANHAMENTO GERAL">ACOMPANHAMENTO GERAL</option>
+                <option value="PREPARO DE BANCO">PREPARO DE BANCO</option>
+                <option value="IMPORTAÇÕES">IMPORTAÇÕES</option>
+                <option value="OUTROS FISCAL">OUTROS FISCAL</option>
+                <option value="OUTROS CONTÁBIL">OUTROS CONTÁBIL</option>
+            </select>
+
+            <label for="trainingTimeStart">Horário de Início:</label>
+            <input type="time" id="trainingTimeStart" required>
+
+            <label for="trainingTimeEnd">Horário de Término:</label>
+            <input type="time" id="trainingTimeEnd" required>
+
+            <button id="submitInitialPopup">Continuar</button>
+        </div>
+    </div>
+
+    <!-- Popup para Colar Conteúdo (Única Opção agora) -->
+    <div class="popup-overlay" id="emailSourcePopup">
+        <div class="popup-content">
+            <h2>Extrair E-mails</h2>
+            <p style="font-size: 0.85em; margin-bottom: 12px; opacity: 0.8;">O conteúdo da área de transferência será colado automaticamente ao abrir esta tela.</p>
+            
+            <label for="manualContent">Conteúdo da página:</label>
+            <textarea id="manualContent" placeholder="Cole o texto ou HTML aqui..."></textarea>
+            
+            <button id="processContentButton">Extrair e Processar</button>
+        </div>
+    </div>
+
+    <!-- Popup para Confirmação de E-mail -->
+    <div class="popup-overlay" id="emailConfirmPopup">
+        <div class="popup-content">
+            <h2>Confirmar E-mails</h2>
+            <p style="font-size: 0.85em; margin-bottom: 10px;">E-mails encontrados. Por favor, confirme:</p>
+            
+            <label for="confirmPrimaryEmail">E-mail Principal (Para):</label>
+            <input type="email" id="confirmPrimaryEmail" placeholder="E-mail principal" required>
+
+            <label for="confirmCCEmails">E-mails Adicionais (CC) - use ";" como separador:</label>
+            <textarea id="confirmCCEmails" placeholder="E-mail 1; E-mail 2; ..."></textarea>
+
+            <div class="button-group">
+                <button id="confirmEmailButton">Confirmar</button>
+                <button id="cancelEmailButton">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Carregamento com Spinner -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <div class="loading-text">Processando conteúdo...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-percentage"><span id="progressPercentage">0</span>%</div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // ELEMENTOS DO DOM
+        // ========================================
+        const body = document.body;
+        const mainContainer = document.getElementById('mainContainer');
+        const settingsIcon = document.getElementById('settingsIcon');
+        const skinSelector = document.getElementById('skinSelector');
+        const skinPreviews = document.querySelectorAll('.skin-preview');
+        const initialPopup = document.getElementById('initialPopup');
+        const submitInitialPopup = document.getElementById('submitInitialPopup');
+        const trainingDateInput = document.getElementById('trainingDate');
+        const trainingModuleSelect = document.getElementById('trainingModule');
+        const trainingTimeStartInput = document.getElementById('trainingTimeStart');
+        const trainingTimeEndInput = document.getElementById('trainingTimeEnd');
+        const emailSourcePopup = document.getElementById('emailSourcePopup');
+        const manualContentInput = document.getElementById('manualContent');
+        const processContentButton = document.getElementById('processContentButton');
+        const emailConfirmPopup = document.getElementById('emailConfirmPopup');
+        const confirmPrimaryEmailInput = document.getElementById('confirmPrimaryEmail');
+        const confirmCCEmailsTextarea = document.getElementById('confirmCCEmails');
+        const confirmEmailButton = document.getElementById('confirmEmailButton');
+        const cancelEmailButton = document.getElementById('cancelEmailButton');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const progressFill = document.getElementById('progressFill');
+        const progressPercentage = document.getElementById('progressPercentage');
+
+        // ========================================
+        // VARIÁVEIS GLOBAIS
+        // ========================================
+        let trainingData = {};
+
+        // ========================================
+        // FUNÇÃO PARA COLAGEM AUTOMÁTICA
+        // ========================================
+        async function autoPaste() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    manualContentInput.value = text;
+                }
+            } catch (err) {
+                console.log('Permissão de clipboard negada ou indisponível.');
+            }
+        }
+
+        // ========================================
+        // GERENCIAMENTO DE SKINS
+        // ========================================
+        settingsIcon.addEventListener('click', () => {
+            skinSelector.classList.toggle('active');
+        });
+
+        skinPreviews.forEach(preview => {
+            preview.addEventListener('click', () => {
+                const skinId = preview.dataset.skin;
+                applySkin(skinId);
+                skinSelector.classList.remove('active');
+            });
+        });
+
+        function applySkin(skinId) {
+            let gradient;
+            switch (skinId) {
+                case '1': gradient = 'linear-gradient(to right, #19547b, #ffd89b)'; break;
+                case '2': gradient = 'linear-gradient(to right, #3d72b4, #525252)'; break;
+                case '3': gradient = 'linear-gradient(to right, #191654, #43C6AC)'; break;
+                case '4': gradient = 'linear-gradient(to right, #4ca2cd, #67B26F)'; break;
+                case '5': gradient = 'linear-gradient(to right, #3f4c6b, #606c88)'; break;
+                default: gradient = 'linear-gradient(to right, #3d72b4, #525252)';
+            }
+            body.style.background = gradient;
+            document.documentElement.style.setProperty('--skin-gradient', gradient);
+        }
+
+        // ========================================
+        // GERENCIAMENTO DO POPUP INICIAL
+        // ========================================
+        submitInitialPopup.addEventListener('click', () => {
+            const date = trainingDateInput.value;
+            const module = trainingModuleSelect.value;
+            const timeStart = trainingTimeStartInput.value;
+            const timeEnd = trainingTimeEndInput.value;
+
+            if (date && module && timeStart && timeEnd) {
+                trainingData = {
+                    date: date,
+                    module: module,
+                    timeStart: timeStart,
+                    timeEnd: timeEnd,
+                    time: `${timeStart} a ${timeEnd}`
+                };
+                initialPopup.classList.remove('active');
+                emailSourcePopup.classList.add('active');
+                autoPaste(); // Tenta colar ao abrir
+            } else {
+                alert('Por favor, preencha todas as informações do treinamento.');
+            }
+        });
+
+        // ========================================
+        // SPINNER DE CARREGAMENTO PROGRESSIVO
+        // ========================================
+        function simulateProgressiveLoading(duration = 2000) {
+            return new Promise((resolve) => {
+                let progress = 0;
+                const startTime = Date.now();
+                const interval = setInterval(() => {
+                    const elapsed = Date.now() - startTime;
+                    progress = Math.min((elapsed / duration) * 100, 95);
+                    updateProgress(progress);
+                    if (elapsed >= duration) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+
+        function updateProgress(percentage) {
+            progressFill.style.width = percentage + '%';
+            progressPercentage.textContent = Math.round(percentage);
+        }
+
+        function completeProgress() {
+            progressFill.style.width = '100%';
+            progressPercentage.textContent = '100';
+        }
+
+        // ========================================
+        // PROCESSAMENTO DO CONTEÚDO MANUAL
+        // ========================================
+        processContentButton.addEventListener('click', () => {
+            const content = manualContentInput.value.trim();
+            if (!content) {
+                alert('Por favor, cole o conteúdo da página.');
+                return;
+            }
+
+            emailSourcePopup.classList.remove('active');
+            loadingOverlay.classList.add('active');
+            updateProgress(0);
+
+            const loadingPromise = simulateProgressiveLoading(1500);
+
+            loadingPromise.then(() => {
+                completeProgress();
+                setTimeout(() => {
+                    loadingOverlay.classList.remove('active');
+                    mainContainer.classList.add('visible');
+                    settingsIcon.classList.add('visible');
+                    extractEmailsAndOpenOutlook(content);
+                }, 500);
+            });
+        });
+
+        // ========================================
+        // EXTRAÇÃO DE E-MAILS
+        // ========================================
+        function extractEmailsAndOpenOutlook(pageContent) {
+            const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+            let emailsFound = new Set();
+
+            const matches = pageContent.match(emailRegex);
+            if (matches) {
+                matches.forEach(email => emailsFound.add(email));
+            }
+
+            if (emailsFound.size > 0) {
+                const emailsArray = Array.from(emailsFound);
+                const primaryEmail = emailsArray[0];
+                const ccEmails = emailsArray.slice(1);
+
+                confirmPrimaryEmailInput.value = primaryEmail;
+                confirmCCEmailsTextarea.value = ccEmails.join('; ');
+                emailConfirmPopup.classList.add('active');
+            } else {
+                confirmPrimaryEmailInput.value = '';
+                confirmCCEmailsTextarea.value = '';
+                alert('Nenhum e-mail encontrado. Insira manualmente.');
+                emailConfirmPopup.classList.add('active');
+            }
+        }
+
+        // ========================================
+        // GERENCIAMENTO DO POPUP DE CONFIRMAÇÃO
+        // ========================================
+        confirmEmailButton.addEventListener('click', () => {
+            const primaryEmail = confirmPrimaryEmailInput.value.trim();
+            const ccEmailsText = confirmCCEmailsTextarea.value.trim();
+
+            if (!primaryEmail) {
+                alert('Por favor, insira um e-mail principal.');
+                return;
+            }
+
+            const ccEmails = ccEmailsText
+                .split(/[;\n]/)
+                .map(email => email.trim())
+                .filter(email => email.length > 0);
+
+            emailConfirmPopup.classList.remove('active');
+            openOutlook(primaryEmail, ccEmails);
+        });
+
+        cancelEmailButton.addEventListener('click', () => {
+            emailConfirmPopup.classList.remove('active');
+            alert('Processo cancelado.');
+        });
+
+        // ========================================
+        // ABERTURA DO OUTLOOK
+        // ========================================
+        function openOutlook(toEmail, ccEmails = []) {
+            const subject = `Confirmação | Treinamento - ${trainingData.module} - ${trainingData.time} | Thomson Reuters - Domínio Sistemas`;
+            const body = `Olá, tudo bem?\n\nMeu nome é Ivan e sou Especialista em implantação e treinamento - Domínio Sistemas.\n\nGostaria de confirmar nosso treinamento do ${trainingData.module} agendado para ${trainingData.time}.\n\nA Thomson Reuters tem a política de cancelamento que deve ser avisado com 48h úteis de antecedência.\nCaso não puder realizar, encaminhe mensagem para: 📱 WhatsApp: (11) 91576‑8587 📧 E-mail: implantacao.dominio@thomsonreuters.com avisando motivo da não realização.\n\nAt.te\n\nIvan Alves Ramalho \nEspecialista I&T\n(11) 99664-9967\nivan.ramalho@thomsonreuters.com`;
+
+            let mailtoLink = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+            if (ccEmails.length > 0) {
+                mailtoLink += `&cc=${encodeURIComponent(ccEmails.join(';'))}`;
+            }
+
+            window.location.href = mailtoLink;
+        }
+    </script>
+</body>
+</html>
